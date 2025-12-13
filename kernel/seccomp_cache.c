@@ -37,7 +37,7 @@ void ksu_seccomp_clear_cache(struct seccomp_filter *filter, int nr)
         return;
     }
 
-    if (nr >= 0 && nr < SECCOMP_ARCH_COMPAT_NR) {
+    if (nr >= 0 && nr < SECCOMP_ARCH_NATIVE_NR) {
         clear_bit(nr, filter->cache.allow_native);
     }
 
@@ -54,7 +54,7 @@ void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
         return;
     }
 
-    if (nr >= 0 && nr < SECCOMP_ARCH_COMPAT_NR) {
+    if (nr >= 0 && nr < SECCOMP_ARCH_NATIVE_NR) {
         set_bit(nr, filter->cache.allow_native);
     }
 
