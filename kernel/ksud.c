@@ -235,7 +235,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 			const char __user *p = get_user_arg_ptr(*argv, 1);
 			if (p && !IS_ERR(p)) {
 				char first_arg[16];
-				strncpy_from_user_nofault(first_arg, p, sizeof(first_arg));
+				strncpy_from_unsafe_user(first_arg, p, sizeof(first_arg));
 				pr_info("/system/bin/init first arg: %s\n", first_arg);
 				if (!strcmp(first_arg, "second_stage")) {
 					pr_info("/system/bin/init second_stage executed\n");
@@ -257,7 +257,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 			const char __user *p = get_user_arg_ptr(*argv, 1);
 			if (p && !IS_ERR(p)) {
 				char first_arg[16];
-				strncpy_from_user_nofault(first_arg, p, sizeof(first_arg));
+				strncpy_from_unsafe_user(first_arg, p, sizeof(first_arg));
 				pr_info("/init first arg: %s\n", first_arg);
 				if (!strcmp(first_arg, "--second-stage")) {
 					pr_info("/init second_stage executed\n");
@@ -279,7 +279,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 					}
 					char env[256];
 					// Reading environment variable strings from user space
-					if (strncpy_from_user_nofault(env, p, sizeof(env)) < 0)
+					if (strncpy_from_unsafe_user(env, p, sizeof(env)) < 0)
 						continue;
 					// Parsing environment variable names and values
 					char *env_name = env;
@@ -518,9 +518,9 @@ static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	fn = (const char __user *)addr;
 
 	memset(path, 0, sizeof(path));
-	ret = strncpy_from_user_nofault(path, fn, 32);
+	ret = strncpy_from_unsafe_user(path, fn, 32);
 	if (ret < 0 && try_set_access_flag(addr)) {
-		ret = strncpy_from_user_nofault(path, fn, 32);
+		ret = strncpy_from_unsafe_user(path, fn, 32);
 	}
 	if (ret < 0) {
 		pr_err("Access filename failed for execve_handler_pre\n");

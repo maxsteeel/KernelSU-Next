@@ -8,10 +8,11 @@
 #include "klog.h" // IWYU pragma: keep
 #include "seccomp_cache.h"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2)
 struct action_cache {
-	DECLARE_BITMAP(allow_native, SECCOMP_ARCH_NATIVE_NR);
+    DECLARE_BITMAP(allow_native, SECCOMP_ARCH_NATIVE_NR);
 #ifdef SECCOMP_ARCH_COMPAT
-	DECLARE_BITMAP(allow_compat, SECCOMP_ARCH_COMPAT_NR);
+    DECLARE_BITMAP(allow_compat, SECCOMP_ARCH_COMPAT_NR);
 #endif
 };
 
@@ -36,7 +37,7 @@ void ksu_seccomp_clear_cache(struct seccomp_filter *filter, int nr)
         return;
     }
 
-    if (nr >= 0 && nr < SECCOMP_ARCH_NATIVE_NR) {
+    if (nr >= 0 && nr < SECCOMP_ARCH_COMPAT_NR) {
         clear_bit(nr, filter->cache.allow_native);
     }
 
@@ -53,7 +54,7 @@ void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
         return;
     }
 
-    if (nr >= 0 && nr < SECCOMP_ARCH_NATIVE_NR) {
+    if (nr >= 0 && nr < SECCOMP_ARCH_COMPAT_NR) {
         set_bit(nr, filter->cache.allow_native);
     }
 
@@ -63,3 +64,4 @@ void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
     }
 #endif
 }
+#endif
