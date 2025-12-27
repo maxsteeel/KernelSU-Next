@@ -10,7 +10,7 @@
 #include "setuid_hook.h"
 #include "throne_tracker.h"
 
-#ifndef KSU_KPROBES_HOOK
+#if !defined(KSU_KPROBES_HOOK) && !defined(CONFIG_KSU_SUSFS)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) || defined(CONFIG_IS_HW_HISI)
 static int ksu_key_permission(key_ref_t key_ref, const struct cred *cred,
@@ -144,12 +144,10 @@ static struct security_hook_list ksu_hooks[] = {
 	defined(CONFIG_IS_HW_HISI) || defined(CONFIG_KSU_ALLOWLIST_WORKAROUND)
 	LSM_HOOK_INIT(key_permission, ksu_key_permission),
 #endif
-#ifndef KSU_KPROBES_HOOK
 	LSM_HOOK_INIT(bprm_check_security, ksu_bprm_check),
 	LSM_HOOK_INIT(inode_permission, ksu_inode_permission),
 	LSM_HOOK_INIT(inode_rename, ksu_inode_rename),
 	LSM_HOOK_INIT(task_fix_setuid, ksu_task_fix_setuid)
-#endif
 };
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
