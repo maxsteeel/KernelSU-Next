@@ -93,7 +93,7 @@ static void try_umount(const char *mnt, int flags)
 		return;
 	}
 #ifndef KSU_HAS_PATH_UMOUNT
-    ksu_umount_mnt(mnt, &path, flags);
+	ksu_umount_mnt(mnt, &path, flags);
 #else
 	ksu_umount_mnt(&path, flags);
 #endif
@@ -108,17 +108,18 @@ static void umount_tw_func(struct callback_head *cb)
 	struct umount_tw *tw = container_of(cb, struct umount_tw, cb);
 	const struct cred *saved = override_creds(ksu_cred);
 
-    struct mount_entry *entry;
-    down_read(&mount_list_lock);
-    list_for_each_entry(entry, &mount_list, list) {
-        pr_info("%s: unmounting: %s flags 0x%x\n", __func__, entry->umountable, entry->flags);
-        try_umount(entry->umountable, entry->flags);
-    }
+	struct mount_entry *entry;
+	down_read(&mount_list_lock);
+	list_for_each_entry (entry, &mount_list, list) {
+		pr_info("%s: unmounting: %s flags 0x%x\n", __func__,
+			entry->umountable, entry->flags);
+		try_umount(entry->umountable, entry->flags);
+	}
     up_read(&mount_list_lock);
 
-	revert_creds(saved);
+    revert_creds(saved);
 
-	kfree(tw);
+    kfree(tw);
 }
 
 int ksu_handle_umount(uid_t old_uid, uid_t new_uid)

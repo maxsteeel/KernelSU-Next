@@ -20,14 +20,14 @@ static struct policydb *get_policydb(void)
     struct policydb *db;
 #ifdef KSU_COMPAT_USE_SELINUX_STATE
 #ifdef SELINUX_POLICY_INSTEAD_SELINUX_SS
-	struct selinux_policy *policy = selinux_state.policy;
-	db = &policy->policydb;
+    struct selinux_policy *policy = selinux_state.policy;
+    db = &policy->policydb;
 #else
-	struct selinux_ss *ss = selinux_state.ss;
-	db = &ss->policydb;
+    struct selinux_ss *ss = selinux_state.ss;
+    db = &ss->policydb;
 #endif
 #else
-	db = &policydb;
+    db = &policydb;
 #endif
     return db;
 }
@@ -162,7 +162,7 @@ struct sepol_data {
 };
 
 static int get_object(char *buf, char __user *user_object, size_t buf_sz,
-                      char **object)
+		      char **object)
 {
     if (!user_object) {
         *object = ALL;
@@ -177,8 +177,8 @@ static int get_object(char *buf, char __user *user_object, size_t buf_sz,
 
     return 0;
 }
-#if ((!defined(KSU_COMPAT_USE_SELINUX_STATE)) || \
-	LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0))
+#if ((!defined(KSU_COMPAT_USE_SELINUX_STATE)) ||                               \
+     LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0))
 extern int avc_ss_reset(u32 seqno);
 #else
 extern int avc_ss_reset(struct selinux_avc *avc, u32 seqno);
@@ -186,11 +186,11 @@ extern int avc_ss_reset(struct selinux_avc *avc, u32 seqno);
 // reset avc cache table, otherwise the new rules will not take effect if already denied
 static void reset_avc_cache()
 {
-#if ((!defined(KSU_COMPAT_USE_SELINUX_STATE)) || \
-	LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0))
-    avc_ss_reset(0);
-    selnl_notify_policyload(0);
-    selinux_status_update_policyload(0);
+#if ((!defined(KSU_COMPAT_USE_SELINUX_STATE)) ||                               \
+     LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0))
+	avc_ss_reset(0);
+	selnl_notify_policyload(0);
+	selinux_status_update_policyload(0);
 #else
     struct selinux_avc *avc = selinux_state.avc;
     avc_ss_reset(avc, 0);
@@ -248,13 +248,13 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
             goto exit;
         }
 
-        if (get_object(perm_buf, data.sepol4, sizeof(perm_buf), &p) < 0) {
-            pr_err("sepol: copy perm failed.\n");
-            goto exit;
-        }
+	if (get_object(perm_buf, data.sepol4, sizeof(perm_buf), &p) < 0) {
+		pr_err("sepol: copy perm failed.\n");
+		goto exit;
+	}
 
-        bool success = false;
-        if (subcmd == 1) {
+	bool success = false;
+	if (subcmd == 1) {
             success = ksu_allow(db, s, t, c, p);
         } else if (subcmd == 2) {
             success = ksu_deny(db, s, t, c, p);
@@ -272,10 +272,10 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
         char tgt_buf[MAX_SEPOL_LEN];
         char cls_buf[MAX_SEPOL_LEN];
 
-        char __maybe_unused operation[MAX_SEPOL_LEN]; // it is always ioctl now!
-        char perm_set[MAX_SEPOL_LEN];
+	char __maybe_unused operation[MAX_SEPOL_LEN]; // it is always ioctl now!
+	char perm_set[MAX_SEPOL_LEN];
 
-        char *s, *t, *c;
+	char *s, *t, *c;
         if (get_object(src_buf, data.sepol1, sizeof(src_buf), &s) < 0) {
             pr_err("sepol: copy src failed.\n");
             goto exit;
@@ -288,17 +288,17 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
             pr_err("sepol: copy cls failed.\n");
             goto exit;
         }
-        if (strncpy_from_user(operation, data.sepol4, sizeof(operation)) < 0) {
-            pr_err("sepol: copy operation failed.\n");
-            goto exit;
-        }
-        if (strncpy_from_user(perm_set, data.sepol5, sizeof(perm_set)) < 0) {
-            pr_err("sepol: copy perm_set failed.\n");
-            goto exit;
-        }
+	if (strncpy_from_user(operation, data.sepol4, sizeof(operation)) < 0) {
+		pr_err("sepol: copy operation failed.\n");
+		goto exit;
+	}
+	if (strncpy_from_user(perm_set, data.sepol5, sizeof(perm_set)) < 0) {
+		pr_err("sepol: copy perm_set failed.\n");
+		goto exit;
+	}
 
-        bool success = false;
-        if (subcmd == 1) {
+	bool success = false;
+	if (subcmd == 1) {
             success = ksu_allowxperm(db, s, t, c, perm_set);
         } else if (subcmd == 2) {
             success = ksu_auditallowxperm(db, s, t, c, perm_set);
@@ -384,26 +384,27 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
             pr_err("sepol: copy cls failed.\n");
             goto exit;
         }
-        if (strncpy_from_user(default_type, data.sepol4, sizeof(default_type)) <
-            0) {
-            pr_err("sepol: copy default_type failed.\n");
-            goto exit;
-        }
-        char *real_object;
-        if (data.sepol5 == NULL) {
+	if (strncpy_from_user(default_type, data.sepol4, sizeof(default_type)) <
+	    0) {
+		pr_err("sepol: copy default_type failed.\n");
+		goto exit;
+	}
+	char *real_object;
+	if (data.sepol5 == NULL) {
             real_object = NULL;
         } else {
-            if (strncpy_from_user(object, data.sepol5, sizeof(object)) < 0) {
-                pr_err("sepol: copy object failed.\n");
-                goto exit;
-            }
-            real_object = object;
-        }
+		if (strncpy_from_user(object, data.sepol5, sizeof(object)) <
+		    0) {
+			pr_err("sepol: copy object failed.\n");
+			goto exit;
+		}
+		real_object = object;
+	}
 
-        bool success =
-            ksu_type_transition(db, src, tgt, cls, default_type, real_object);
-        if (success)
-            ret = 0;
+	bool success = ksu_type_transition(db, src, tgt, cls, default_type,
+					   real_object);
+	if (success)
+		ret = 0;
 
     } else if (cmd == CMD_TYPE_CHANGE) {
         char src[MAX_SEPOL_LEN];
@@ -423,20 +424,20 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
             pr_err("sepol: copy cls failed.\n");
             goto exit;
         }
-        if (strncpy_from_user(default_type, data.sepol4, sizeof(default_type)) <
-            0) {
-            pr_err("sepol: copy default_type failed.\n");
-            goto exit;
-        }
-        bool success = false;
-        if (subcmd == 1) {
-            success = ksu_type_change(db, src, tgt, cls, default_type);
-        } else if (subcmd == 2) {
-            success = ksu_type_member(db, src, tgt, cls, default_type);
-        } else {
-            pr_err("sepol: unknown subcmd: %d\n", subcmd);
-        }
-        if (success)
+	if (strncpy_from_user(default_type, data.sepol4, sizeof(default_type)) <
+	    0) {
+		pr_err("sepol: copy default_type failed.\n");
+		goto exit;
+	}
+	bool success = false;
+	if (subcmd == 1) {
+		success = ksu_type_change(db, src, tgt, cls, default_type);
+	} else if (subcmd == 2) {
+		success = ksu_type_member(db, src, tgt, cls, default_type);
+	} else {
+		pr_err("sepol: unknown subcmd: %d\n", subcmd);
+	}
+	if (success)
             ret = 0;
     } else if (cmd == CMD_GENFSCON) {
         char name[MAX_SEPOL_LEN];
@@ -450,16 +451,16 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
             pr_err("sepol: copy path failed.\n");
             goto exit;
         }
-        if (strncpy_from_user(context, data.sepol3, sizeof(context)) < 0) {
-            pr_err("sepol: copy context failed.\n");
-            goto exit;
-        }
+	if (strncpy_from_user(context, data.sepol3, sizeof(context)) < 0) {
+		pr_err("sepol: copy context failed.\n");
+		goto exit;
+	}
 
-        if (!ksu_genfscon(db, name, path, context)) {
-            pr_err("sepol: %d failed.\n", cmd);
-            goto exit;
-        }
-        ret = 0;
+	if (!ksu_genfscon(db, name, path, context)) {
+		pr_err("sepol: %d failed.\n", cmd);
+		goto exit;
+	}
+	ret = 0;
     } else {
         pr_err("sepol: unknown cmd: %d\n", cmd);
     }

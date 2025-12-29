@@ -24,34 +24,34 @@
 #include "file_wrapper.h"
 
 struct ksu_file_wrapper {
-    struct file *orig;
-    struct file_operations ops;
+	struct file *orig;
+	struct file_operations ops;
 };
 
 static struct ksu_file_wrapper *ksu_create_file_wrapper(struct file *fp);
 
 static int ksu_wrapper_open(struct inode *ino, struct file *fp)
 {
-    struct path *orig_path = fp->f_path.dentry->d_fsdata;
-    struct file *orig_file =
-        dentry_open(orig_path, fp->f_flags, current_cred());
-    if (IS_ERR(orig_file)) {
-        return PTR_ERR(orig_file);
-    }
-    struct ksu_file_wrapper *wrapper = ksu_create_file_wrapper(orig_file);
-    if (IS_ERR(wrapper)) {
-        filp_close(orig_file, current->files);
-        return PTR_ERR(wrapper);
-    }
-    fp->private_data = wrapper;
-    const struct file_operations *new_fops = fops_get(&wrapper->ops);
-    replace_fops(fp, new_fops);
-    return 0;
+	struct path *orig_path = fp->f_path.dentry->d_fsdata;
+	struct file *orig_file =
+		dentry_open(orig_path, fp->f_flags, current_cred());
+	if (IS_ERR(orig_file)) {
+		return PTR_ERR(orig_file);
+	}
+	struct ksu_file_wrapper *wrapper = ksu_create_file_wrapper(orig_file);
+	if (IS_ERR(wrapper)) {
+		filp_close(orig_file, current->files);
+		return PTR_ERR(wrapper);
+	}
+	fp->private_data = wrapper;
+	const struct file_operations *new_fops = fops_get(&wrapper->ops);
+	replace_fops(fp, new_fops);
+	return 0;
 }
 
 static const struct file_operations ksu_file_wrapper_inode_fops = {
-    .owner = THIS_MODULE,
-    .open = ksu_wrapper_open
+	.owner = THIS_MODULE,
+	.open = ksu_wrapper_open
 };
 
 static loff_t ksu_wrapper_llseek(struct file *fp, loff_t off, int flags) {
@@ -122,7 +122,8 @@ static int ksu_wrapper_iterate_shared(struct file *fp, struct dir_context *dc) {
 
 // typedef unsigned __bitwise __poll_t;
 static unsigned __bitwise ksu_wrapper_poll(struct file *fp,
-					   struct poll_table_struct *pts) {
+					   struct poll_table_struct *pts)
+{
 	struct ksu_file_wrapper* data = fp->private_data;
 	struct file* orig = data->orig;
 	return orig->f_op->poll(orig, pts);
@@ -249,7 +250,10 @@ static int ksu_wrapper_setlease(struct file *fp, int arg1, struct file_lock **fl
 	}
 	return -EINVAL;
 }
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0) // int (*setlease)(struct file *, long, struct file_lock **, void **);
+#elif LINUX_VERSION_CODE >=                                                    \
+	KERNEL_VERSION(                                                        \
+		3, 18,                                                         \
+		0) // int (*setlease)(struct file *, long, struct file_lock **, void **);
 static int ksu_wrapper_setlease(struct file *fp, long arg1, struct file_lock **fl, void **p) {
 	struct ksu_file_wrapper* data = fp->private_data;
 	struct file* orig = data->orig;
@@ -259,9 +263,11 @@ static int ksu_wrapper_setlease(struct file *fp, long arg1, struct file_lock **f
 	return -EINVAL;
 }
 #else // int (*setlease)(struct file *, long, struct file_lock **);
-static int ksu_wrapper_setlease(struct file *fp, long arg1, struct file_lock **fl) {
-	struct ksu_file_wrapper* data = fp->private_data;
-	struct file* orig = data->orig;
+static int ksu_wrapper_setlease(struct file *fp, long arg1,
+				struct file_lock **fl)
+{
+	struct ksu_file_wrapper *data = fp->private_data;
+	struct file *orig = data->orig;
 	if (orig->f_op->setlease) {
 		return orig->f_op->setlease(orig, arg1, fl);
 	}
@@ -287,9 +293,10 @@ static void ksu_wrapper_show_fdinfo(struct seq_file *m, struct file *f) {
 	}
 }
 #else
-static int ksu_wrapper_show_fdinfo(struct seq_file *m, struct file *f) {
-	struct ksu_file_wrapper* data = f->private_data;
-	struct file* orig = data->orig;
+static int ksu_wrapper_show_fdinfo(struct seq_file *m, struct file *f)
+{
+	struct ksu_file_wrapper *data = f->private_data;
+	struct file *orig = data->orig;
 	if (orig->f_op->show_fdinfo) {
 		orig->f_op->show_fdinfo(m, orig);
 	}
@@ -341,18 +348,21 @@ static int ksu_wrapper_fadvise(struct file *fp, loff_t off1, loff_t off2, int fl
 
 static void ksu_release_file_wrapper(struct ksu_file_wrapper *data);
 
-static int ksu_wrapper_release(struct inode *inode, struct file *filp) {
+static int ksu_wrapper_release(struct inode *inode, struct file *filp)
+{
 	// https://cs.android.com/android/kernel/superproject/+/common-android-mainline:common/fs/file_table.c;l=467-473;drc=3be0b283b562eabbc2b1f3bb534dc8903079bbaa
 	// f_op->release is called before fops_put(f_op), so we put it manually.
 	fops_put(filp->f_op);
 	// prevent it from being put again
 	filp->f_op = NULL;
 	ksu_release_file_wrapper(filp->private_data);
-    return 0;
+	return 0;
 }
 
-static struct ksu_file_wrapper* ksu_create_file_wrapper(struct file* fp) {
-	struct ksu_file_wrapper* p = kcalloc(1, sizeof(struct ksu_file_wrapper), GFP_KERNEL);
+static struct ksu_file_wrapper *ksu_create_file_wrapper(struct file *fp)
+{
+	struct ksu_file_wrapper *p =
+		kcalloc(1, sizeof(struct ksu_file_wrapper), GFP_KERNEL);
 	if (!p) {
 		return ERR_PTR(-ENOMEM);
 	}
@@ -395,8 +405,8 @@ static struct ksu_file_wrapper* ksu_create_file_wrapper(struct file* fp) {
 	p->ops.sendpage = fp->f_op->sendpage ? ksu_wrapper_sendpage : NULL;
 #endif
 	p->ops.get_unmapped_area = fp->f_op->get_unmapped_area ?
-					   ksu_wrapper_get_unmapped_area :
-					   NULL;
+						 ksu_wrapper_get_unmapped_area :
+						 NULL;
 	p->ops.check_flags = fp->f_op->check_flags;
 	p->ops.flock = fp->f_op->flock ? ksu_wrapper_flock : NULL;
 	p->ops.splice_write = fp->f_op->splice_write ? ksu_wrapper_splice_write : NULL;
@@ -409,8 +419,8 @@ static struct ksu_file_wrapper* ksu_create_file_wrapper(struct file* fp) {
 #endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 20, 0)
 	p->ops.remap_file_range = fp->f_op->remap_file_range ?
-					  ksu_wrapper_remap_file_range :
-					  NULL;
+						ksu_wrapper_remap_file_range :
+						NULL;
 #endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 	p->ops.fadvise = fp->f_op->fadvise ? ksu_wrapper_fadvise : NULL;
@@ -422,7 +432,8 @@ static struct ksu_file_wrapper* ksu_create_file_wrapper(struct file* fp) {
 	return p;
 }
 
-static void ksu_release_file_wrapper(struct ksu_file_wrapper *data) {
+static void ksu_release_file_wrapper(struct ksu_file_wrapper *data)
+{
 	fput((struct file*) data->orig);
 	kfree(data);
 }

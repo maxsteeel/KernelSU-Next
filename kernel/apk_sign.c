@@ -99,7 +99,7 @@ static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset,
 		}
 		ksu_kernel_read_compat(fp, cert, *size4, pos);
 		unsigned char digest[SHA256_DIGEST_SIZE];
-		if (ksu_sha256(cert, *size4, digest) < 0 ) {
+		if (ksu_sha256(cert, *size4, digest) < 0) {
 			pr_info("sha256 error\n");
 			return false;
 		}
@@ -140,8 +140,8 @@ static bool has_v1_signature_file(struct file *fp)
 	loff_t pos = 0;
 
 	while (ksu_kernel_read_compat(fp, &header,
-					sizeof(struct zip_entry_header), &pos) ==
-		sizeof(struct zip_entry_header)) {
+				      sizeof(struct zip_entry_header), &pos) ==
+	       sizeof(struct zip_entry_header)) {
 		if (header.signature != 0x04034b50) {
 			// ZIP magic: 'PK'
 			return false;
@@ -150,7 +150,7 @@ static bool has_v1_signature_file(struct file *fp)
 		if (header.file_name_length == sizeof(MANIFEST) - 1) {
 			char fileName[sizeof(MANIFEST)];
 			ksu_kernel_read_compat(fp, fileName,
-						header.file_name_length, &pos);
+					       header.file_name_length, &pos);
 			fileName[header.file_name_length] = '\0';
 
 			// Check if the entry matches META-INF/MANIFEST.MF
@@ -235,7 +235,7 @@ static __always_inline bool check_v2_signature(char *path,
 		uint32_t id;
 		uint32_t offset;
 		ksu_kernel_read_compat(fp, &size8, 0x8,
-					&pos); // sequence length
+				       &pos); // sequence length
 		if (size8 == size_of_block) {
 			break;
 		}

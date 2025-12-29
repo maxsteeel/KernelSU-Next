@@ -21,8 +21,8 @@ static int transive_to_domain(const char *domain, struct cred *cred)
 
     error = security_secctx_to_secid(domain, strlen(domain), &sid);
     if (error) {
-        pr_info("security_secctx_to_secid %s -> sid: %d, error: %d\n", domain,
-                sid, error);
+	    pr_info("security_secctx_to_secid %s -> sid: %d, error: %d\n",
+		    domain, sid, error);
     }
     if (!error) {
         tsec->sid = sid;
@@ -58,17 +58,17 @@ is_ksu_transition(const struct task_security_struct *old_tsec,
 
 void setup_selinux(const char *domain)
 {
-    if (transive_to_domain(domain, (struct cred *)__task_cred(current))) {
-        pr_err("transive domain failed.\n");
-        return;
-    }
+	if (transive_to_domain(domain, (struct cred *)__task_cred(current))) {
+		pr_err("transive domain failed.\n");
+		return;
+	}
 }
 
 void setup_ksu_cred()
 {
-    if (ksu_cred && transive_to_domain(KERNEL_SU_CONTEXT, ksu_cred)) {
-        pr_err("setup ksu cred failed.\n");
-    }
+	if (ksu_cred && transive_to_domain(KERNEL_SU_CONTEXT, ksu_cred)) {
+		pr_err("setup ksu cred failed.\n");
+	}
 }
 
 void setenforce(bool enforce)
@@ -177,9 +177,9 @@ bool is_zygote(const struct cred* cred)
     return is_context(cred, "u:r:zygote:s0");
 }
 
-bool is_init(const struct cred* cred)
+bool is_init(const struct cred *cred)
 {
-    return is_context(cred, "u:r:init:s0");
+	return is_context(cred, "u:r:init:s0");
 }
 
 #define KSU_FILE_DOMAIN "u:object_r:ksu_file:s0"
@@ -187,8 +187,8 @@ bool is_init(const struct cred* cred)
 u32 ksu_get_ksu_file_sid()
 {
     u32 ksu_file_sid = 0;
-    int err = security_secctx_to_secid(KSU_FILE_CONTEXT, strlen(KSU_FILE_CONTEXT),
-                       &ksu_file_sid);
+    int err = security_secctx_to_secid(KSU_FILE_CONTEXT,
+				       strlen(KSU_FILE_CONTEXT), &ksu_file_sid);
     if (err) {
         pr_info("get ksufile sid err %d\n", err);
     }

@@ -144,7 +144,7 @@ struct ksu_uid_should_umount_cmd {
 };
 
 struct ksu_get_manager_appid_cmd {
-    uint32_t appid; // Output: manager app id
+	uint32_t appid; // Output: manager app id
 };
 
 struct ksu_get_app_profile_cmd {

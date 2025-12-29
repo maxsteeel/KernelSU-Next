@@ -357,12 +357,12 @@ Java_com_rifsxd_ksunext_Natives_setEnhancedSecurityEnabled(JNIEnv *env, jobject 
     return set_enhanced_security_enabled(enabled);
 }
 
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_rifsxd_ksunext_Natives_getUserName(JNIEnv *env, jobject thiz, jint uid) {
-    struct passwd *pw = getpwuid((uid_t) uid);
-    if (pw && pw->pw_name && pw->pw_name[0] != '\0') {
-        return env->NewStringUTF(pw->pw_name);
-    }
-    return nullptr;
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_rifsxd_ksunext_Natives_getUserName(JNIEnv *env, jobject thiz, jint uid)
+{
+	struct passwd *pw = getpwuid((uid_t)uid);
+	if (pw && pw->pw_name && pw->pw_name[0] != '\0') {
+		return env->NewStringUTF(pw->pw_name);
+	}
+	return nullptr;
 }

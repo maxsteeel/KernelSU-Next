@@ -64,7 +64,8 @@ static const struct ksu_feature_handler avc_spoof_handler = {
 static int get_sid()
 {
 	// dont load at all if we cant get sids
-	int err = security_secctx_to_secid(KERNEL_SU_CONTEXT, strlen(KERNEL_SU_CONTEXT), &su_sid);
+	int err = security_secctx_to_secid(KERNEL_SU_CONTEXT,
+					   strlen(KERNEL_SU_CONTEXT), &su_sid);
 	if (err) {
 		pr_info("avc_spoof/get_sid: su_sid not found!\n");
 		return -1;
@@ -161,7 +162,7 @@ void ksu_avc_spoof_disable(void)
 	pr_info("avc_spoof/exit: slow_avc_audit spoofing disabled!\n");
 }
 
-void ksu_avc_spoof_enable(void) 
+void ksu_avc_spoof_enable(void)
 {
 	int ret = get_sid();
 	if (ret) {
@@ -171,19 +172,20 @@ void ksu_avc_spoof_enable(void)
 
 #ifdef KSU_KPROBES_HOOK
 	pr_info("avc_spoof/init: register slow_avc_audit kprobe!\n");
-	slow_avc_audit_kp = init_kprobe("slow_avc_audit", slow_avc_audit_pre_handler);
-#endif	
+	slow_avc_audit_kp =
+		init_kprobe("slow_avc_audit", slow_avc_audit_pre_handler);
+#endif
 	// once we get the sids, we can now enable the hook handler
 	atomic_set(&disable_spoof, 0);
-	
+
 	pr_info("avc_spoof/init: slow_avc_audit spoofing enabled!\n");
 }
 
 void ksu_avc_spoof_late_init()
 {
 	boot_completed = true;
-	
-    if (ksu_avc_spoof_enabled) {
+
+	if (ksu_avc_spoof_enabled) {
 		ksu_avc_spoof_enable();
 	}
 }

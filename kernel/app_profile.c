@@ -231,9 +231,9 @@ void disable_seccomp(void)
 	}
 #endif
 
-    // Refer to kernel/seccomp.c: seccomp_set_mode_strict
-    // When disabling Seccomp, ensure that current->sighand->siglock is held during the operation.
-    spin_lock_irq(&current->sighand->siglock);
+	// Refer to kernel/seccomp.c: seccomp_set_mode_strict
+	// When disabling Seccomp, ensure that current->sighand->siglock is held during the operation.
+	spin_lock_irq(&current->sighand->siglock);
 	// disable seccomp
 #if defined(CONFIG_GENERIC_ENTRY) &&                                           \
 	LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
@@ -255,16 +255,16 @@ void disable_seccomp(void)
 	current->seccomp.filter = NULL;
 
 	atomic_set(&current->seccomp.filter_count, 0);
-    spin_unlock_irq(&current->sighand->siglock);
+	spin_unlock_irq(&current->sighand->siglock);
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) ||                          \
      defined(KSU_OPTIONAL_SECCOMP_FILTER_RELEASE))
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
-    // https://github.com/torvalds/linux/commit/bfafe5efa9754ebc991750da0bcca2a6694f3ed3#diff-45eb79a57536d8eccfc1436932f093eb5c0b60d9361c39edb46581ad313e8987R576-R577
-    fake->flags |= PF_EXITING;
+	// https://github.com/torvalds/linux/commit/bfafe5efa9754ebc991750da0bcca2a6694f3ed3#diff-45eb79a57536d8eccfc1436932f093eb5c0b60d9361c39edb46581ad313e8987R576-R577
+	fake->flags |= PF_EXITING;
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-    // https://github.com/torvalds/linux/commit/0d8315dddd2899f519fe1ca3d4d5cdaf44ea421e#diff-45eb79a57536d8eccfc1436932f093eb5c0b60d9361c39edb46581ad313e8987R556-R558
-    fake->sighand = NULL;
+	// https://github.com/torvalds/linux/commit/0d8315dddd2899f519fe1ca3d4d5cdaf44ea421e#diff-45eb79a57536d8eccfc1436932f093eb5c0b60d9361c39edb46581ad313e8987R556-R558
+	fake->sighand = NULL;
 #endif
 	seccomp_filter_release(fake);
 	kfree(fake);
@@ -332,6 +332,7 @@ void escape_with_root_profile(void)
 	setup_mount_ns(profile->namespaces);
 }
 
-void escape_to_root_for_init(void) {
+void escape_to_root_for_init(void)
+{
 	setup_selinux(KERNEL_SU_CONTEXT);
 }

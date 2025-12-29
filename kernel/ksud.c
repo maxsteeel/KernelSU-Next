@@ -51,7 +51,8 @@ static const char KERNEL_SU_RC[] =
 	"on post-fs-data\n"
 	"    start logd\n"
 	// We should wait for the post-fs-data finish
-	"    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " post-fs-data\n"
+	"    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH
+	" post-fs-data\n"
 	"\n"
 
 	"on nonencrypted\n"
@@ -63,7 +64,8 @@ static const char KERNEL_SU_RC[] =
 	"\n"
 
 	"on property:sys.boot_completed=1\n"
-	"    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " boot-completed\n"
+	"    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH
+	" boot-completed\n"
 	"\n"
 
 	"\n";
@@ -221,7 +223,8 @@ static struct callback_head on_post_fs_data_cb = { .func =
 // since _ksud handler only uses argv and envp for comparisons
 // this can probably work
 // adapted from ksu_handle_execveat_ksud
-static int ksu_handle_bprm_ksud(const char *filename, const char *argv1, const char *envp, size_t envp_len)
+static int ksu_handle_bprm_ksud(const char *filename, const char *argv1,
+				const char *envp, size_t envp_len)
 {
 	static const char app_process[] = "/system/bin/app_process";
 	static bool first_app_process = true;
@@ -240,7 +243,8 @@ static int ksu_handle_bprm_ksud(const char *filename, const char *argv1, const c
 		return 0;
 
 	// debug! remove me!
-	pr_info("%s: filename: %s argv1: %s envp_len: %zu\n", __func__, filename, argv1, envp_len);
+	pr_info("%s: filename: %s argv1: %s envp_len: %zu\n", __func__,
+		filename, argv1, envp_len);
 
 #ifdef CONFIG_KSU_DEBUG
 	const char *envp_n = envp;
@@ -256,10 +260,11 @@ static int ksu_handle_bprm_ksud(const char *filename, const char *argv1, const c
 		goto first_app_process;
 
 	// /system/bin/init with argv1
-	if (!init_second_stage_executed 
-		&& (!memcmp(filename, system_bin_init, sizeof(system_bin_init) - 1))) {
+	if (!init_second_stage_executed &&
+	    (!memcmp(filename, system_bin_init, sizeof(system_bin_init) - 1))) {
 		if (argv1 && !strcmp(argv1, "second_stage")) {
-			pr_info("%s: /system/bin/init second_stage executed\n", __func__);
+			pr_info("%s: /system/bin/init second_stage executed\n",
+				__func__);
 			apply_kernelsu_rules();
 			setup_ksu_cred();
 			init_second_stage_executed = true;
@@ -267,10 +272,11 @@ static int ksu_handle_bprm_ksud(const char *filename, const char *argv1, const c
 	}
 
 	// /init with argv1
-	if (!init_second_stage_executed 
-		&& (!memcmp(filename, old_system_init, sizeof(old_system_init) - 1))) {
+	if (!init_second_stage_executed &&
+	    (!memcmp(filename, old_system_init, sizeof(old_system_init) - 1))) {
 		if (argv1 && !strcmp(argv1, "--second-stage")) {
-			pr_info("%s: /init --second-stage executed\n", __func__);
+			pr_info("%s: /init --second-stage executed\n",
+				__func__);
 			apply_kernelsu_rules();
 			init_second_stage_executed = true;
 		}
@@ -281,8 +287,8 @@ static int ksu_handle_bprm_ksud(const char *filename, const char *argv1, const c
 
 	// /init without argv1/useless-argv1 but usable envp
 	// untested! TODO: test and debug me!
-	if (!init_second_stage_executed && (!memcmp(filename, old_system_init, sizeof(old_system_init) - 1))) {
-		
+	if (!init_second_stage_executed &&
+	    (!memcmp(filename, old_system_init, sizeof(old_system_init) - 1))) {
 		// we hunt for "INIT_SECOND_STAGE"
 		const char *envp_n = envp;
 		unsigned int envc = 1;
@@ -293,17 +299,19 @@ static int ksu_handle_bprm_ksud(const char *filename, const char *argv1, const c
 			envc++;
 		} while (envp_n < envp + envp_len);
 		pr_info("%s: envp[%d]: %s\n", __func__, envc, envp_n);
-		
-		if (!strcmp(envp_n, "INIT_SECOND_STAGE=1")
-			|| !strcmp(envp_n, "INIT_SECOND_STAGE=true") ) {
-			pr_info("%s: /init +envp: INIT_SECOND_STAGE executed\n", __func__);
+
+		if (!strcmp(envp_n, "INIT_SECOND_STAGE=1") ||
+		    !strcmp(envp_n, "INIT_SECOND_STAGE=true")) {
+			pr_info("%s: /init +envp: INIT_SECOND_STAGE executed\n",
+				__func__);
 			apply_kernelsu_rules();
 			init_second_stage_executed = true;
 		}
 	}
 
 first_app_process:
-	if (first_app_process && !memcmp(filename, app_process, sizeof(app_process) - 1)) {
+	if (first_app_process &&
+	    !memcmp(filename, app_process, sizeof(app_process) - 1)) {
 		first_app_process = false;
 		pr_info("exec app_process, /data prepared, second_stage: %d\n",
 			init_second_stage_executed);
@@ -329,8 +337,9 @@ int ksu_handle_pre_ksud(const char *filename)
 
 	// not /system/bin/init, not /init, not /system/bin/app_process (64/32 thingy)
 	// return 0;
-	if (likely(strcmp(filename, "/system/bin/init") && strcmp(filename, "/init")
-		&& !strstarts(filename, "/system/bin/app_process") ))
+	if (likely(strcmp(filename, "/system/bin/init") &&
+		   strcmp(filename, "/init") &&
+		   !strstarts(filename, "/system/bin/app_process")))
 		return 0;
 
 	if (!current || !current->mm)
@@ -349,18 +358,20 @@ int ksu_handle_pre_ksud(const char *filename)
 	if (arg_len <= 0 || envp_len <= 0) // this wont make sense, filter it
 		return 0;
 
-	#define ARGV_MAX 32  // this is enough for argv1
-	#define ENVP_MAX 256  // this is enough for INIT_SECOND_STAGE
+#define ARGV_MAX 32 // this is enough for argv1
+#define ENVP_MAX 256 // this is enough for INIT_SECOND_STAGE
 	char args[ARGV_MAX];
 	size_t argv_copy_len = (arg_len > ARGV_MAX) ? ARGV_MAX : arg_len;
 	char envp[ENVP_MAX];
 	size_t envp_copy_len = (envp_len > ENVP_MAX) ? ENVP_MAX : envp_len;
 
 	// we cant use strncpy on here, else it will truncate once it sees \0
-	if (ksu_copy_from_user_retry(args, (void __user *)arg_start, argv_copy_len))
+	if (ksu_copy_from_user_retry(args, (void __user *)arg_start,
+				     argv_copy_len))
 		return 0;
 
-	if (ksu_copy_from_user_retry(envp, (void __user *)env_start, envp_copy_len))
+	if (ksu_copy_from_user_retry(envp, (void __user *)env_start,
+				     envp_copy_len))
 		return 0;
 
 	args[ARGV_MAX - 1] = '\0';
@@ -484,8 +495,10 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 		}
 	}
 
-	if (unlikely(first_zygote && !memcmp(filename->name, app_process,
-			     sizeof(app_process) - 1) && argv)) {
+	if (unlikely(first_zygote &&
+		     !memcmp(filename->name, app_process,
+			     sizeof(app_process) - 1) &&
+		     argv)) {
 		char buf[16];
 		if (check_argv(*argv, 1, "-Xzygote", buf, sizeof(buf))) {
 			pr_info("exec zygote, /data prepared, second_stage: %d\n",
@@ -494,7 +507,8 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 			struct task_struct *init_task =
 				rcu_dereference(current->real_parent);
 			if (init_task)
-				task_work_add(init_task, &on_post_fs_data_cb, TWA_RESUME);
+				task_work_add(init_task, &on_post_fs_data_cb,
+					      TWA_RESUME);
 			rcu_read_unlock();
 			first_zygote = false;
 			stop_execve_hook();
@@ -535,7 +549,8 @@ append_ksu_rc:
 		append_count = count - ret;
 	// copy_to_user returns the number of not copied
 	if (copy_to_user(buf + ret, KERNEL_SU_RC + ksu_rc_pos, append_count)) {
-		pr_info("read_proxy: append error, totally appended %ld\n", ksu_rc_pos);
+		pr_info("read_proxy: append error, totally appended %ld\n",
+			ksu_rc_pos);
 	} else {
 		pr_info("read_proxy: append %ld\n", append_count);
 
@@ -564,8 +579,8 @@ static ssize_t read_iter_proxy(struct kiocb *iocb, struct iov_iter *to)
 	}
 append_ksu_rc:
 	// copy_to_iter returns the number of copied bytes
-	append_count =
-		copy_to_iter(KERNEL_SU_RC + ksu_rc_pos, ksu_rc_len - ksu_rc_pos, to);
+	append_count = copy_to_iter(KERNEL_SU_RC + ksu_rc_pos,
+				    ksu_rc_len - ksu_rc_pos, to);
 	if (!append_count) {
 		pr_info("read_iter_proxy: append error, totally appended %ld\n",
 			ksu_rc_pos);
@@ -580,7 +595,6 @@ append_ksu_rc:
 	}
 	return ret;
 }
-
 
 static bool check_init_path(char *dpath)
 {
@@ -607,7 +621,7 @@ static bool check_init_path(char *dpath)
 }
 
 int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,
-				size_t *count_ptr, loff_t **pos)
+			size_t *count_ptr, loff_t **pos)
 {
 #ifndef KSU_KPROBES_HOOK
 	if (!ksu_vfs_read_hook) {
@@ -682,7 +696,7 @@ int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,
 }
 
 int ksu_handle_sys_read(unsigned int fd, char __user **buf_ptr,
-				size_t *count_ptr)
+			size_t *count_ptr)
 {
 	struct file *file = fget(fd);
 	if (!file) {
@@ -918,7 +932,6 @@ static void stop_input_hook()
 	pr_info("stop input_hook\n");
 #endif
 }
-
 
 // ksud: module support
 void ksu_ksud_init()

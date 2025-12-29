@@ -40,15 +40,16 @@ extern ssize_t ksu_kernel_write_compat(struct file *p, const void *buf,
 extern struct key *init_session_keyring;
 #endif
 
-extern long ksu_copy_from_user_nofault(void *dst, const void __user *src, size_t size);
+extern long ksu_copy_from_user_nofault(void *dst, const void __user *src,
+				       size_t size);
 /*
  * ksu_copy_from_user_retry
  * try nofault copy first, if it fails, try with plain
  * paramters are the same as copy_from_user
  * 0 = success
  */
-static long ksu_copy_from_user_retry(void *to, 
-		const void __user *from, unsigned long count)
+static long ksu_copy_from_user_retry(void *to, const void __user *from,
+				     unsigned long count)
 {
 	long ret = ksu_copy_from_user_nofault(to, from, count);
 	if (likely(!ret))
@@ -71,7 +72,7 @@ extern void *ksu_compat_kvrealloc(const void *p, size_t oldsize, size_t newsize,
 
 #ifndef KSU_OPTIONAL_STRNCPY
 extern long strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
-				   long count);
+				      long count);
 #endif // #ifndef KSU_OPTIONAL_STRNCPY
 
 // Linux >= 5.7

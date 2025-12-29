@@ -14,7 +14,7 @@
 #include "ksu.h"
 #include "file_wrapper.h"
 
-struct cred* ksu_cred;
+struct cred *ksu_cred;
 
 extern void __init ksu_lsm_hook_init(void);
 extern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
@@ -41,10 +41,10 @@ int __init kernelsu_init(void)
 	pr_alert("*************************************************************");
 #endif
 
-    ksu_cred = prepare_creds();
-    if (!ksu_cred) {
-        pr_err("prepare cred failed!\n");
-    }
+	ksu_cred = prepare_creds();
+	if (!ksu_cred) {
+		pr_err("prepare cred failed!\n");
+	}
 
 	ksu_feature_init();
 
