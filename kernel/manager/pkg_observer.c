@@ -28,7 +28,7 @@ static KSU_DECL_FSNOTIFY_OPS(ksu_handle_inode_event)
         return 0;
     if (mask & FS_ISDIR)
         return 0;
-    if (file_name->len == 13 && !memcmp(file_name->name, "packages.list", 13)) {
+    if (ksu_fname_len(file_name) == 13 && !memcmp(ksu_fname_arg(file_name), "packages.list", 13)) {
         pr_info("packages.list detected: %d\n", mask);
         track_throne(false);
     }
